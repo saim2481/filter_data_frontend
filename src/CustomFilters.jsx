@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Select, MenuItem, FormControl, InputLabel, OutlinedInput, Box, TextField, Button, Chip} from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, OutlinedInput, Box, TextField, Button, Chip, CircularProgress} from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from "axios";
 
@@ -16,10 +16,11 @@ function CustomFilters() {
   const [availableYears, setAvailableYears] = useState([]);
   const [availableCountries, setAvailableCountries] = useState([]);
   const [inputExcludedWord, setInputExcludedWord] = useState("");
+  const [loading, setLoading] = useState(false); // New loading state
 
   useEffect(() => {
     // Fetch available years
-    axios.get("http://127.0.0.1:8002/api/v1/general_settings/years/",{
+    axios.get("http://api-ahyaos.codelabs.inc:443/api/v1/general_settings/years/",{
       params: {
         start_year:2001,
         end_year:2024
@@ -29,7 +30,7 @@ function CustomFilters() {
       .catch(error => console.error('Error fetching years:', error));
 
     // Fetch available countries
-    axios.get("http://127.0.0.1:8002/api/v1/general_settings/countries/?skip=0&limit=100")
+    axios.get("http://api-ahyaos.codelabs.inc:443/api/v1/general_settings/countries/?skip=0&limit=100")
       .then(response => {
         const iso2Countries = response.data.map(country => country.iso2);
         setAvailableCountries(iso2Countries)})
@@ -48,6 +49,7 @@ function CustomFilters() {
   };
 
   const handleSearch = async () => {
+    setLoading(true); // Start loading
     const params = new URLSearchParams();
   
     // Add years as multiple Year_filter parameters
@@ -64,8 +66,8 @@ function CustomFilters() {
     params.append('footprint_description', searchTerm);
   
     await axios.get(`http://127.0.0.1:8003/search/?${params.toString()}`)
-      .then(response => {setData(response.data); console.log(response.data);})
-      .catch(error => console.error('Error fetching data:', error));
+      .then(response => {setData(response.data); console.log(response.data);setLoading(false);})
+      .catch(error => {console.error('Error fetching data:', error),setLoading(false);});
   };
 
   return (
@@ -145,7 +147,27 @@ function CustomFilters() {
         </Button>
         
       </Box>
-      <Box sx={{ width: '80%', paddingLeft: 2 }}>
+      {/* <Box sx={{ width: '80%', paddingLeft: 2 }}>
+          <div style={{ height: 700, width: '100%' }}>
+            <DataGrid
+              rows={data}
+              columns={cols}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 5 },
+                },
+              }}
+              pageSizeOptions={[5, 10]}
+              checkboxSelection
+            />
+          </div>
+        </Box> */}
+        {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400,padding:5 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Box sx={{ width: '80%', paddingLeft: 2 }}>
           <div style={{ height: 700, width: '100%' }}>
             <DataGrid
               rows={data}
@@ -160,6 +182,7 @@ function CustomFilters() {
             />
           </div>
         </Box>
+      )}
     </Box>
     
   );
