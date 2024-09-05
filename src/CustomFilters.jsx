@@ -20,7 +20,7 @@ function CustomFilters() {
 
   useEffect(() => {
     // Fetch available years
-    axios.get("http://api-ahyaos.codelabs.inc:443/api/v1/general_settings/years/",{
+    axios.get("/api/v1/general_settings/years",{
       params: {
         start_year:2001,
         end_year:2024
@@ -30,7 +30,7 @@ function CustomFilters() {
       .catch(error => console.error('Error fetching years:', error));
 
     // Fetch available countries
-    axios.get("http://api-ahyaos.codelabs.inc:443/api/v1/general_settings/countries/?skip=0&limit=100")
+    axios.get("/api/v1/general_settings/countries/?skip=0&limit=100")
       .then(response => {
         const iso2Countries = response.data.map(country => country.iso2);
         setAvailableCountries(iso2Countries)})
@@ -65,7 +65,7 @@ function CustomFilters() {
     // Add the search term
     params.append('footprint_description', searchTerm);
   
-    await axios.get(`http://127.0.0.1:8003/search/?${params.toString()}`)
+    await axios.get(`/search/?${params.toString()}`)
       .then(response => {setData(response.data); console.log(response.data);setLoading(false);})
       .catch(error => {console.error('Error fetching data:', error),setLoading(false);});
   };
