@@ -11,10 +11,12 @@ function CustomFilters() {
   const [data, setData] = useState([]);
   const [years, setYears] = useState([]);
   const [countries, setCountries] = useState([]);
+  const [units, setUnits] = useState([]);
   const [excludedWords, setExcludedWords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [availableYears, setAvailableYears] = useState([]);
   const [availableCountries, setAvailableCountries] = useState([]);
+  const [availableUnits, setAvailableUnits] = useState([]);
   const [inputExcludedWord, setInputExcludedWord] = useState("");
   const [loading, setLoading] = useState(false); // New loading state
 
@@ -35,7 +37,16 @@ function CustomFilters() {
         const iso2Countries = response.data.map(country => country.iso2);
         setAvailableCountries(iso2Countries)})
       .catch(error => console.error('Error fetching countries:', error));
+    
+        // Fetch available units
+    axios.get("http://127.0.0.1:8002/units/")
+      .then(response => {
+        const units = response.data.map(unit => unit.name);
+        setAvailableUnits(units)})
+      .catch(error => console.error('Error fetching countries:', error));
   }, []);
+
+  
 
   const handleAddExcludedWord = () => {
     if (inputExcludedWord && !excludedWords.includes(inputExcludedWord)) {
@@ -57,6 +68,9 @@ function CustomFilters() {
   
     // Add countries as a single parameter (if needed)
     countries.forEach(country => params.append('Country_filter', country));
+
+    // Add units as a single parameter (if needed)
+    units.forEach(unit => params.append('Unit_filter', unit));
   
     // Add excluded words as a single parameter
     // Add countries as a single parameter (if needed)
@@ -65,7 +79,7 @@ function CustomFilters() {
     // Add the search term
     params.append('footprint_description', searchTerm);
   
-    await axios.get(`http://ec2-40-172-46-97.me-central-1.compute.amazonaws.com/search/?${params.toString()}`)
+    await axios.get(`http://127.0.0.1:8002/search/?${params.toString()}`)
       .then(response => {setData(response.data); console.log(response.data);setLoading(false);})
       .catch(error => {console.error('Error fetching data:', error),setLoading(false);});
   };
@@ -86,6 +100,24 @@ function CustomFilters() {
             {availableYears.map((year) => (
               <MenuItem key={year} value={year}>
                 {year}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ marginBottom: 2 }}>
+          <InputLabel id="unitsLabel">Units</InputLabel>
+          <Select
+            labelId="unitsLabel"
+            multiple
+            value={units}
+            onChange={(e) => setUnits(e.target.value)}
+            input={<OutlinedInput label="Units" />}
+            renderValue={(selected) => selected.join(', ')}
+          >
+            {availableUnits.map((unit) => (
+              <MenuItem key={unit} value={unit}>
+                {unit}
               </MenuItem>
             ))}
           </Select>
